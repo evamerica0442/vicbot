@@ -1,0 +1,66 @@
+version: 0.0
+os: linux
+
+# AWS CodeDeploy Application Specification for Victoria Fisheries Bot
+# This file defines how the application should be deployed to EC2 instances
+
+files:
+  - source: /
+    destination: /opt/victoria-fisheries-bot
+    overwrite: true
+
+permissions:
+  # Set directory permissions
+  - object: /opt/victoria-fisheries-bot
+    owner: ubuntu
+    group: ubuntu
+    mode: 755
+    type:
+      - directory
+  
+  # Set file permissions
+  - object: /opt/victoria-fisheries-bot
+    owner: ubuntu
+    group: ubuntu
+    mode: 644
+    type:
+      - file
+  
+  # Make deployment scripts executable
+  - object: /opt/victoria-fisheries-bot/scripts
+    owner: ubuntu
+    group: ubuntu
+    mode: 755
+    type:
+      - file
+
+hooks:
+  # Runs before the new version is installed
+  BeforeInstall:
+    - location: scripts/before_install.sh
+      timeout: 300
+      runas: root
+  
+  # Runs after the new version is installed but before ApplicationStart
+  AfterInstall:
+    - location: scripts/after_install.sh
+      timeout: 300
+      runas: root
+  
+  # Stops the currently running application
+  ApplicationStop:
+    - location: scripts/application_stop.sh
+      timeout: 300
+      runas: root
+  
+  # Starts the newly deployed application
+  ApplicationStart:
+    - location: scripts/application_start.sh
+      timeout: 300
+      runas: root
+  
+  # Validates that the application is running correctly
+  ValidateService:
+    - location: scripts/validate_service.sh
+      timeout: 300
+      runas: root
